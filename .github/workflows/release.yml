@@ -1,0 +1,87 @@
+name: Release packages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-packages-main
+  cancel-in-progress: false
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      created_release_count: ${{ steps.version.outputs.created_release_count }}
+      final_tag: ${{ steps.version.outputs.final_tag }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Calculate and create release tag
+        id: version
+        run: node ./scripts/release-tags.mjs
+
+  publish:
+    needs: create-tag
+    if: ${{ needs.create-tag.outputs.created_release_count != '0' }}
+    runs-on: ubuntu-latest
+    env:
+      NPM_CONFIG_PROVENANCE: true
+      VERSION: ${{ needs.create-tag.outputs.final_tag }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.create-tag.outputs.final_tag }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Prepare release manifests
+        run: |
+          export VERSION="${VERSION#v}"
+          for package_dir in packages/oqs-kek packages/e2ee-auth packages/offline-provider packages/realtime packages/import-export-suite; do
+            npm pkg set "version=${VERSION}" --prefix "$package_dir"
+          done
+
+      - name: Test packages
+        run: |
+          pnpm test
+          pnpm typecheck
+
+      - name: Publish packages in dependency order
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          export VERSION="${VERSION#v}"
+          publish_package() {
+            local package_name="$1"
+            if npm view "${package_name}@${VERSION}" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
+              echo "${package_name}@${VERSION} is already published."
+              return
+            fi
+            pnpm --filter "$package_name" publish --access public --no-git-checks
+          }
+
+          publish_package @e2ee-lib/oqs-kek
+          publish_package @e2ee-lib/e2ee-auth
+          publish_package @e2ee-lib/offline-provider
+          publish_package @e2ee-lib/realtime
+          publish_package @e2ee-lib/import-export-suite
