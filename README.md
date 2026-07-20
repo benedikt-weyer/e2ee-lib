@@ -1,2 +1,2 @@
-# e2ee-utils
-e2ee-utils
+# e2ee-lib
+e2ee-lib
