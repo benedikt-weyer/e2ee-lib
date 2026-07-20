@@ -1,4 +1,5 @@
 node_modules/
 .turbo/
 coverage/
+apps/docs/site/
 *.tgz

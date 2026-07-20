@@ -1,0 +1,51 @@
+site_name: E2EE Libraries
+site_description: Platform-neutral E2EE building blocks for web and React Native
+site_url: https://benedikt-weyer.github.io/e2ee-lib/
+repo_url: https://github.com/benedikt-weyer/e2ee-lib
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: emerald
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: lime
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+nav:
+  - Overview: index.md
+  - Getting started: getting-started.md
+  - Packages:
+      - E2EE Auth: e2ee-auth.md
+      - OQS KEK: oqs-kek.md
+      - Offline Provider: offline-provider.md
+      - Realtime: realtime.md
+      - Import/export suite: import-export-suite.md
+  - Concepts:
+      - Security boundary: security-model.md
+  - Maintainers:
+      - Releases: releases.md
+markdown_extensions:
+  - admonition
+  - attr_list
+  - plantuml_markdown:
+      servers:
+        - url: https://www.plantuml.com/plantuml
+          kroki: false
+      format: svg_inline
+      fallback_to_get: true
+  - tables
+  - toc:
+      permalink: true

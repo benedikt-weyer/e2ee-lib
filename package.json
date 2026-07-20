@@ -3,6 +3,8 @@
   "private": true,
   "packageManager": "pnpm@10.33.4",
   "scripts": {
+    "docs:build": "pnpm --filter docs build",
+    "docs:dev": "pnpm --filter docs dev",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck"
   },
